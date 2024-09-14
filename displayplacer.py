@@ -154,16 +154,22 @@ def export_range_hex():
         page = y // 8
         hex_pattern[page][x] |= 1 << y - page * 8
 
+    column_end = 128
+
+    while (
+        column_end >= 0
+        and hex_pattern[0][column_end - 1] == 0
+        and hex_pattern[1][column_end - 1] == 0
+        and hex_pattern[2][column_end - 1] == 0
+        and hex_pattern[3][column_end - 1] == 0
+    ):
+        column_end -= 1
+
     for page_idx in range(4):
         for uint_idx in range(128):
-            if (uint_idx + (page_idx * 128)) % 128 == 0:
-                output_str += "\n"
-            if (
-                hex_pattern[0][uint_idx] != 0
-                and hex_pattern[1][uint_idx] != 0
-                and hex_pattern[2][uint_idx] != 0
-                and hex_pattern[3][uint_idx] != 0
-            ):
+            if uint_idx < column_end:
+                if (uint_idx + (page_idx * column_end)) % column_end == 0:
+                    output_str += "\n"
                 output_str += "0x" + f"{hex_pattern[page_idx][uint_idx]:02X}" + ", "
     output_str = output_str[:-2]  # remove trailing comma and space
 
@@ -289,8 +295,9 @@ info_textbox["state"] = "disable"
 # menubar setup
 menubar = Menu(root)
 menubar.add_command(label="Display_Export", command=export_hex)
-menubar.add_command(label="Display_Range_Export", command=export_range_hex)
 menubar.add_command(label="Display_Import", command=import_hex)
+menubar.add_command(label="Display_Range_Export", command=export_range_hex)
+menubar.add_command(label="Display_Range_Import", command=import_range_hex)
 menubar.add_command(label="Character_Export", command=old_export_hex)
 menubar.add_command(label="Character_Import", command=old_import_hex)
 menubar.add_command(label="Clear", command=clear_canvas)
