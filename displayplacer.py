@@ -233,6 +233,11 @@ def export_range_hex():
     hex_textbox.insert("end", output_str)
 
 
+def convert_format():
+    old_import_hex()
+    export_range_hex()
+
+
 def old_import_hex():
     if not messagebox.askokcancel(
         "WARNING",
@@ -349,6 +354,7 @@ menubar = Menu(root)
 menubar.add_command(label="Display_Export", command=export_hex)
 menubar.add_command(label="Display_Range_Export", command=export_range_hex)
 menubar.add_command(label="Display_Import", command=import_range_hex)
+menubar.add_command(label="Format_range_Convert", command=convert_format)
 menubar.add_command(label="Character_Export", command=old_export_hex)
 menubar.add_command(label="Character_Import", command=old_import_hex)
 menubar.add_command(label="Clear", command=clear_canvas)
