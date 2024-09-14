@@ -16,46 +16,61 @@ def get_pixel(x, y):
     pixel_y = y // PIXEL_SIZE
     return int(pixel_x), int(pixel_y)
 
+
 def get_pixel_center(pixel):
     pixel_center_x = pixel[0] * PIXEL_SIZE + PIXEL_SIZE // 2
     pixel_center_y = pixel[1] * PIXEL_SIZE + PIXEL_SIZE // 2
     return int(pixel_center_x), int(pixel_center_y)
 
+
 def mark_handler(event):
     x, y = event.x, event.y
-    if ( 0 < y < CANVAS_HEIGHT * PIXEL_SIZE and 0 < x < WINDOW_WIDTH * PIXEL_SIZE):
-        mark_position(x,y)
+    if 0 < y < CANVAS_HEIGHT * PIXEL_SIZE and 0 < x < WINDOW_WIDTH * PIXEL_SIZE:
+        mark_position(x, y)
+
 
 def clear_handler(event):
     x, y = event.x, event.y
-    if ( 0 < y < CANVAS_HEIGHT * PIXEL_SIZE and 0 < x < WINDOW_WIDTH * PIXEL_SIZE):
-        clear_position(x,y)
+    if 0 < y < CANVAS_HEIGHT * PIXEL_SIZE and 0 < x < WINDOW_WIDTH * PIXEL_SIZE:
+        clear_position(x, y)
+
 
 def mark_position(x, y):
     pixel = get_pixel(x, y)
     pixel_center_x, pixel_center_y = get_pixel_center(pixel)
-    #print("x:" + str(x) + " y:" + str(y) + " pixel:" + str(pixel))
+    # print("x:" + str(x) + " y:" + str(y) + " pixel:" + str(pixel))
     info_textbox["state"] = "normal"
-    info_textbox.replace('1.98', 'end', str(pixel)) # updating only the pixel location marked
+    info_textbox.replace(
+        "1.98", "end", str(pixel)
+    )  # updating only the pixel location marked
     info_textbox["state"] = "disable"
     if pixel not in pixel_set:
         pixel_set.add(pixel)
-        rect_id = canvas.create_rectangle(pixel_center_x - PIXEL_SIZE // 2, pixel_center_y - PIXEL_SIZE // 2, 
-                                         pixel_center_x + PIXEL_SIZE // 2, pixel_center_y + PIXEL_SIZE // 2, 
-                                         fill="black", outline="red")
+        rect_id = canvas.create_rectangle(
+            pixel_center_x - PIXEL_SIZE // 2,
+            pixel_center_y - PIXEL_SIZE // 2,
+            pixel_center_x + PIXEL_SIZE // 2,
+            pixel_center_y + PIXEL_SIZE // 2,
+            fill="black",
+            outline="red",
+        )
         rect_set[pixel] = rect_id
 
-def clear_position(x,y):
+
+def clear_position(x, y):
     pixel = get_pixel(x, y)
     if pixel in pixel_set:
         pixel_set.remove(pixel)
         canvas.delete(rect_set[pixel])
 
+
 def import_hex():
-    if not messagebox.askokcancel("WARNING", "Importing clears all pixels. Are you sure you want to clear?"):
+    if not messagebox.askokcancel(
+        "WARNING", "Importing clears all pixels. Are you sure you want to clear?"
+    ):
         return
     # output_str = input("paste Uinthex format: ")
-    output_str = hex_textbox.get(0.0, 'end')
+    output_str = hex_textbox.get(0.0, "end")
     output_str = output_str.replace("{", "")
     output_str = output_str.replace("}", "")
     output_str = output_str.replace("\t", "")
@@ -70,7 +85,7 @@ def import_hex():
     for hex_idx, output_str in enumerate(hex_list):
         uint_num = int(output_str, 0)
         while uint_num != 0:
-            x, y = 0 , 0
+            x, y = 0, 0
             if uint_num & 0x1 == 1:
                 pixel = (x_idx, y_idx)
                 x, y = get_pixel_center(pixel)
@@ -79,7 +94,14 @@ def import_hex():
 
             uint_num = uint_num >> 1
             y_idx += 1
-        print("idx: " + str(hex_idx) + " output_str: " + output_str + " uint_num: " + str(uint_num))
+        print(
+            "idx: "
+            + str(hex_idx)
+            + " output_str: "
+            + output_str
+            + " uint_num: "
+            + str(uint_num)
+        )
 
         if x_idx < 127:
             x_idx += 1
@@ -90,46 +112,86 @@ def import_hex():
 
     print("IMPORTED")
 
+
 def export_hex():
-    if not messagebox.askokcancel("WARNING", "Exporting clears Text box. Are you sure you want?"):
+    if not messagebox.askokcancel(
+        "WARNING", "Exporting clears Text box. Are you sure you want?"
+    ):
         return
-    hex_pattern = [[ 0 for i in range(128)] for j in range(4)]
+    hex_pattern = [[0 for i in range(128)] for j in range(4)]
     output_str = ""
 
     for pixel in pixel_set:
         x, y = pixel
         page = y // 8
-        hex_pattern[page][x] |= 1 << y - page*8
+        hex_pattern[page][x] |= 1 << y - page * 8
 
     for page_idx in range(4):
         for uint_idx in range(128):
-            if (uint_idx+(page_idx*128)) % 16 == 0:
+            if (uint_idx + (page_idx * 128)) % 16 == 0:
                 output_str += "\n"
             output_str += "0x" + f"{hex_pattern[page_idx][uint_idx]:02X}" + ", "
-    output_str = output_str[:-2] # remove trailing comma and space
+    output_str = output_str[:-2]  # remove trailing comma and space
 
     print("EXPORTING:")
     print("pixel set: " + str(pixel_set))
     print("uint_pattern: ", end="")
     print(output_str, end="\n\n")
-    hex_textbox.delete(0.0, 'end')
-    hex_textbox.insert('end', output_str)
+    hex_textbox.delete(0.0, "end")
+    hex_textbox.insert("end", output_str)
+
+
+def export_range_hex():
+    if not messagebox.askokcancel(
+        "WARNING", "Exporting clears Text box. Are you sure you want?"
+    ):
+        return
+    hex_pattern = [[0 for i in range(128)] for j in range(4)]
+    output_str = ""
+
+    for pixel in pixel_set:
+        x, y = pixel
+        page = y // 8
+        hex_pattern[page][x] |= 1 << y - page * 8
+
+    for page_idx in range(4):
+        for uint_idx in range(128):
+            if (uint_idx + (page_idx * 128)) % 128 == 0:
+                output_str += "\n"
+            if (
+                hex_pattern[0][uint_idx] != 0
+                and hex_pattern[1][uint_idx] != 0
+                and hex_pattern[2][uint_idx] != 0
+                and hex_pattern[3][uint_idx] != 0
+            ):
+                output_str += "0x" + f"{hex_pattern[page_idx][uint_idx]:02X}" + ", "
+    output_str = output_str[:-2]  # remove trailing comma and space
+
+    print("EXPORTING:")
+    print("pixel set: " + str(pixel_set))
+    print("uint_pattern: ", end="")
+    print(output_str, end="\n\n")
+    hex_textbox.delete(0.0, "end")
+    hex_textbox.insert("end", output_str)
 
 
 def old_import_hex():
-    if not messagebox.askokcancel("WARNING", "Importing keeps pixels. Are you sure you want to proceed?"):
+    if not messagebox.askokcancel(
+        "WARNING",
+        "Importing retains already drawn pixels. Are you sure you want to proceed?",
+    ):
         return
     # output_str = input("paste Uinthex format: ")
     offset = get_offset()
-    output_str = hex_textbox.get(0.0, 'end')
+    output_str = hex_textbox.get(0.0, "end")
     output_str = output_str.replace("{", "")
     output_str = output_str.replace("}", "")
     output_str = output_str.replace("\t", "")
     output_str = output_str.replace("\n", "")
     output_str = output_str.replace(" ", "")
     hex_list = output_str.split(",")
-    #pixel_set.clear()
-    #canvas.delete("all")
+    # pixel_set.clear()
+    # canvas.delete("all")
     for hex_idx, output_str in enumerate(hex_list):
         uint_num = int(output_str, 0)
         for y_idx in range(32):
@@ -139,16 +201,19 @@ def old_import_hex():
                 mark_position(x, y)
     print("IMPORTED")
 
+
 def old_export_hex():
-    if not messagebox.askokcancel("WARNING", "Exporting clears Text box. Are you sure you want?"):
+    if not messagebox.askokcancel(
+        "WARNING", "Exporting clears Text box. Are you sure you want?"
+    ):
         return
     hex_pattern = [0x0] * 32
     offset = get_offset()
     output_str = "{"
     for pixel in pixel_set:
         if pixel[0] >= offset and pixel[0] < offset + 31:
-            x_offset = pixel[0]-offset
-            hex_pattern[x_offset] |=  1 << 31 - pixel[1]
+            x_offset = pixel[0] - offset
+            hex_pattern[x_offset] |= 1 << 31 - pixel[1]
     for uint_idx in range(len(hex_pattern) - 1):
         output_str += hex(hex_pattern[uint_idx]) + ", "
     output_str += hex(hex_pattern[-1]) + "}"
@@ -156,14 +221,15 @@ def old_export_hex():
     print("pixel set: " + str(pixel_set))
     print("uint_pattern: ", end="")
     print(output_str, end="\n\n")
-    hex_textbox.delete(0.0, 'end')
-    hex_textbox.insert('end', output_str)
+    hex_textbox.delete(0.0, "end")
+    hex_textbox.insert("end", output_str)
+
 
 def get_offset():
     offset = 0
-    output_str = offset_textbox.get(0.0, 'end')
+    output_str = offset_textbox.get(0.0, "end")
     output_str = output_str.replace("\n", "")
-    if output_str != '':
+    if output_str != "":
         offset = int(output_str)
     if offset > 96:
         offset = 96
@@ -178,39 +244,57 @@ def clear_canvas():
         return
     for x in range(0, WINDOW_WIDTH * PIXEL_SIZE, PIXEL_SIZE):
         for y in range(0, CANVAS_HEIGHT * PIXEL_SIZE, PIXEL_SIZE):
-            clear_position(x,y)
+            clear_position(x, y)
+
 
 def fill_canvas():
     if not messagebox.askokcancel("WARNING", "Are you sure you want to fill?"):
         return
     for x in range(0, WINDOW_WIDTH * PIXEL_SIZE, PIXEL_SIZE):
         for y in range(0, CANVAS_HEIGHT * PIXEL_SIZE, PIXEL_SIZE):
-            mark_position(x,y)
+            mark_position(x, y)
 
-#window, textboxs, canvas setup
+
+# window, textboxs, canvas setup
 root = Tk()
-root.geometry(str(PIXEL_SIZE * WINDOW_WIDTH) + "x" + str(PIXEL_SIZE * (CANVAS_HEIGHT + HEX_TEXT_HEIGHT + INFO_TEXT_HEIGHT*2 + 2)))
+root.geometry(
+    str(PIXEL_SIZE * WINDOW_WIDTH)
+    + "x"
+    + str(PIXEL_SIZE * (CANVAS_HEIGHT + HEX_TEXT_HEIGHT + INFO_TEXT_HEIGHT * 2 + 2))
+)
 root.title("pixel placer")
-canvas = Canvas(root, width=PIXEL_SIZE * WINDOW_WIDTH, height=PIXEL_SIZE * CANVAS_HEIGHT)
-hex_textbox = Text(root, state='normal', width=PIXEL_SIZE * WINDOW_WIDTH, height=HEX_TEXT_HEIGHT)
-info_textbox = Text(root, state='disable', width=PIXEL_SIZE * WINDOW_WIDTH // 2, height=INFO_TEXT_HEIGHT)
-offset_textbox = Text(root, state='normal', width=PIXEL_SIZE * WINDOW_WIDTH // 2, height=INFO_TEXT_HEIGHT)
+canvas = Canvas(
+    root, width=PIXEL_SIZE * WINDOW_WIDTH, height=PIXEL_SIZE * CANVAS_HEIGHT
+)
+hex_textbox = Text(
+    root, state="normal", width=PIXEL_SIZE * WINDOW_WIDTH, height=HEX_TEXT_HEIGHT
+)
+info_textbox = Text(
+    root, state="disable", width=PIXEL_SIZE * WINDOW_WIDTH // 2, height=INFO_TEXT_HEIGHT
+)
+offset_textbox = Text(
+    root, state="normal", width=PIXEL_SIZE * WINDOW_WIDTH // 2, height=INFO_TEXT_HEIGHT
+)
 hex_textbox.pack()
 info_textbox.pack()
 offset_textbox.pack()
 canvas.pack()
 info_textbox["state"] = "normal"
-info_textbox.insert('end', "Insert hex codes above to import. Exported Hex codes will show above. enter offset below 0 to 96. ")
+info_textbox.insert(
+    "end",
+    "Insert hex codes above to import. Exported Hex codes will show above. enter offset below 0 to 96. ",
+)
 info_textbox["state"] = "disable"
 
 # menubar setup
 menubar = Menu(root)
-menubar.add_command(label='Display_Export', command=export_hex)
-menubar.add_command(label='Display_Import', command=import_hex)
-menubar.add_command(label='Character_Export', command=old_export_hex)
-menubar.add_command(label='Character_Import', command=old_import_hex)
-menubar.add_command(label='Clear', command=clear_canvas)
-menubar.add_command(label='Fill', command=fill_canvas)
+menubar.add_command(label="Display_Export", command=export_hex)
+menubar.add_command(label="Display_Range_Export", command=export_range_hex)
+menubar.add_command(label="Display_Import", command=import_hex)
+menubar.add_command(label="Character_Export", command=old_export_hex)
+menubar.add_command(label="Character_Import", command=old_import_hex)
+menubar.add_command(label="Clear", command=clear_canvas)
+menubar.add_command(label="Fill", command=fill_canvas)
 root.config(menu=menubar)
 
 # action setup
