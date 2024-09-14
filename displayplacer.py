@@ -141,6 +141,58 @@ def export_hex():
     hex_textbox.insert("end", output_str)
 
 
+def import_range_hex():
+    if not messagebox.askokcancel(
+        "WARNING", "Importing clears all pixels. Are you sure you want to clear?"
+    ):
+        return
+    # output_str = input("paste Uinthex format: ")
+    output_str = hex_textbox.get(0.0, "end")
+    output_str = output_str.replace("{", "")
+    output_str = output_str.replace("}", "")
+    output_str = output_str.replace("\t", "")
+    output_str = output_str.replace("\n", "")
+    output_str = output_str.replace(" ", "")
+    hex_list = output_str.split(",")
+    pixel_set.clear()
+    canvas.delete("all")
+    y_idx = 0
+    x_idx = 0
+    page = 0
+    column_end = len(hex_list) // 4
+    if column_end > 128:
+        column_end = 128
+    for hex_idx, output_str in enumerate(hex_list):
+        uint_num = int(output_str, 0)
+        while uint_num != 0:
+            x, y = 0, 0
+            if uint_num & 0x1 == 1:
+                pixel = (x_idx, y_idx)
+                x, y = get_pixel_center(pixel)
+                mark_position(x, y)
+                print("(" + str(x_idx) + ", " + str(y_idx) + ") ", end="")
+
+            uint_num = uint_num >> 1
+            y_idx += 1
+        print(
+            "idx: "
+            + str(hex_idx)
+            + " output_str: "
+            + output_str
+            + " uint_num: "
+            + str(uint_num)
+        )
+
+        if x_idx < column_end - 1:
+            x_idx += 1
+        else:
+            page += 1
+            x_idx = 0
+        y_idx = page * 8
+
+    print("IMPORTED")
+
+
 def export_range_hex():
     if not messagebox.askokcancel(
         "WARNING", "Exporting clears Text box. Are you sure you want?"
@@ -295,9 +347,8 @@ info_textbox["state"] = "disable"
 # menubar setup
 menubar = Menu(root)
 menubar.add_command(label="Display_Export", command=export_hex)
-menubar.add_command(label="Display_Import", command=import_hex)
+menubar.add_command(label="Display_Import", command=import_range_hex)
 menubar.add_command(label="Display_Range_Export", command=export_range_hex)
-menubar.add_command(label="Display_Range_Import", command=import_range_hex)
 menubar.add_command(label="Character_Export", command=old_export_hex)
 menubar.add_command(label="Character_Import", command=old_import_hex)
 menubar.add_command(label="Clear", command=clear_canvas)
