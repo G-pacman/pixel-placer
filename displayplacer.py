@@ -347,8 +347,8 @@ info_textbox["state"] = "disable"
 # menubar setup
 menubar = Menu(root)
 menubar.add_command(label="Display_Export", command=export_hex)
-menubar.add_command(label="Display_Import", command=import_range_hex)
 menubar.add_command(label="Display_Range_Export", command=export_range_hex)
+menubar.add_command(label="Display_Import", command=import_range_hex)
 menubar.add_command(label="Character_Export", command=old_export_hex)
 menubar.add_command(label="Character_Import", command=old_import_hex)
 menubar.add_command(label="Clear", command=clear_canvas)
